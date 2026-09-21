@@ -274,7 +274,7 @@ dr_catalog_app <- function(
     title = "dataraft | Data Catalog",
     lang = "en",
     shiny::tags$head(shiny::tags$style(shiny::HTML(
-      ".shiny-table-output .NA { color: #4a4a4a !important; opacity: 1; } .nav-tabs .nav-link { color: #13665f; } :focus-visible { outline: 3px solid #173247; outline-offset: 3px; } .dataraft-skip { position:absolute; left:-10000px; } .dataraft-skip:focus { position:static; }"
+      "#catalog-content .NA { color: #4a4a4a !important; opacity: 1; } .nav-tabs .nav-link { color: #13665f; } :focus-visible { outline: 3px solid #173247; outline-offset: 3px; } .dataraft-skip { position:absolute; left:-10000px; } .dataraft-skip:focus { position:static; }"
     ))),
     shiny::tags$a(
       "Skip to catalog",
