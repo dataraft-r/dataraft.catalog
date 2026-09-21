@@ -3,7 +3,7 @@
 #' @param at Evaluation time.
 #' @return Tibble of published assets with latest attempt and freshness.
 #' @export
-#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE)
+#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE) && requireNamespace("bit64", quietly = TRUE)
 #' root <- tempfile("dataraft-example-")
 #' config <- dataraft.lake::dr_lake_config(
 #'   dataraft.lake::dr_registry_duckdb(file.path(root, "lake.db")),
@@ -152,7 +152,7 @@ catalog_summary <- function(snapshot, at = Sys.time()) {
 #' @return The normalized path, invisibly. No row data or credentials are
 #'   exported.
 #' @export
-#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE)
+#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE) && requireNamespace("bit64", quietly = TRUE)
 #' root <- tempfile("dataraft-example-")
 #' config <- dataraft.lake::dr_lake_config(
 #'   dataraft.lake::dr_registry_duckdb(file.path(root, "lake.db")),
@@ -208,7 +208,7 @@ dr_catalog_export <- function(lake, path) {
 #' @param refresh_seconds Metadata refresh interval.
 #' @return A Shiny app object (when launch = FALSE).
 #' @export
-#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE)
+#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE) && requireNamespace("bit64", quietly = TRUE) && requireNamespace("shiny", quietly = TRUE) && requireNamespace("bslib", quietly = TRUE)
 #' root <- tempfile("dataraft-example-")
 #' config <- dataraft.lake::dr_lake_config(
 #'   dataraft.lake::dr_registry_duckdb(file.path(root, "lake.db")),
