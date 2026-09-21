@@ -234,5 +234,41 @@ openmetadata_table <- function(catalog, metadata) {
   ) {
     result$description <- description
   }
+  governance <- metadata$contract$governance %||% list()
+  labels <- function(values, source) {
+    unname(lapply(as.character(unlist(values)), function(value) {
+      list(
+        tagFQN = value,
+        source = source,
+        labelType = "Manual",
+        state = "Confirmed"
+      )
+    }))
+  }
+  tags <- c(
+    labels(governance$tags, "Classification"),
+    labels(governance$classification, "Classification"),
+    labels(governance$glossary, "Glossary")
+  )
+  if (length(tags)) {
+    result$tags <- tags
+  }
+  if (!is.null(governance$retention)) {
+    result$retentionPeriod <- governance$retention
+  }
+  # Explicit references avoid guessing a user's ID from a display name.
+  if (!is.null(governance$openmetadata_owners)) {
+    result$owners <- governance$openmetadata_owners
+  }
+  for (i in seq_along(result$columns)) {
+    name <- result$columns[[i]]$name
+    info <- metadata$contract$column_metadata[[name]]
+    if (!is.null(info$description)) {
+      result$columns[[i]]$description <- info$description
+    }
+    if (!is.null(info$classification)) {
+      result$columns[[i]]$tags <- labels(info$classification, "Classification")
+    }
+  }
   result
 }

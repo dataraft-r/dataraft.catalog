@@ -97,7 +97,7 @@ openlineage_events <- function(catalog, metadata) {
   rlang::local_error_call(rlang::caller_env())
   dataraft.core::dr_internal_scalar(metadata$run_id, "metadata$run_id")
   dataraft.core::dr_internal_scalar(metadata$product, "metadata$product")
-  producer <- "https://github.com/JanWein/dataraft"
+  producer <- "https://github.com/dataraft-r/dataraft"
   dataset <- function(name, schema = NULL) {
     rlang::local_error_call(rlang::caller_env())
     result <- list(namespace = catalog$namespace, name = name)
@@ -147,7 +147,28 @@ openlineage_events <- function(catalog, metadata) {
   end$eventTime <- event_time(metadata$finished_at)
   end$eventType <- if (successful) "COMPLETE" else "FAIL"
   if (successful) {
-    end$outputs <- list(dataset(metadata$product, metadata$schema))
+    output <- dataset(metadata$product, metadata$schema)
+    lineage <- metadata$column_lineage
+    if (
+      isTRUE(lineage$complete) && length(inputs) == 1L && length(lineage$fields)
+    ) {
+      output$facets$columnLineage <- list(
+        `_producer` = producer,
+        `_schemaURL` = "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json",
+        fields = lapply(lineage$fields, function(fields) {
+          list(
+            inputFields = unname(lapply(fields, function(field) {
+              list(
+                namespace = inputs[[1]]$namespace,
+                name = inputs[[1]]$name,
+                field = field
+              )
+            }))
+          )
+        })
+      )
+    }
+    end$outputs <- list(output)
   }
   list(event, end)
 }
