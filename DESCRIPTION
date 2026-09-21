@@ -13,6 +13,6 @@ Suggests: bit64, bslib, dataraft.dbt (>= 0.1.0.9000), dataraft.lake (>= 0.1.0.90
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Remotes: dataraft-r/dataraft.core@bdbc4f793f95784dfdc8ba026b723da88a0a3643, dataraft-r/dataraft.dbt@7be7fba5c95e97b336ae4cb456ba40581965723c, dataraft-r/dataraft.lake@b748a7eea40f204b2f0497f369e12303e8141255
+Remotes: dataraft-r/dataraft.core@5a7bb6953ef7d79217c43facd399087b97f3c755, dataraft-r/dataraft.dbt@558ff796f017bbbfe3ece3f74ab808c01a9b2edc, dataraft-r/dataraft.lake@6759c2cb16592a344683c07c6ca2830c80dd79e8
 URL: https://github.com/dataraft-r/dataraft.catalog
 BugReports: https://github.com/dataraft-r/dataraft.catalog/issues
