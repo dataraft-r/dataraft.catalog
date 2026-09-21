@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/dataraft-r/dataraft.catalog/main/inst/schemas/DataraftIdentityDatasetFacet.json",
+  "type": "object",
+  "required": ["_producer", "_schemaURL", "logicalId", "physicalIdentity"],
+  "properties": {
+    "_producer": {"type": "string", "format": "uri"},
+    "_schemaURL": {"type": "string", "format": "uri"},
+    "logicalId": {"type": "string"},
+    "physicalIdentity": {"type": "boolean"}
+  }
+}

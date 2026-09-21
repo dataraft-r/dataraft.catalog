@@ -1,5 +1,7 @@
 # dataraft.catalog
 
+This integration is **experimental**. OpenLineage and OpenMetadata evolve independently of DataRaft; pin and validate the versions you deploy. Metadata delivery is at least once and does not make a data write transactional.
+
 Publish metadata with OpenLineage or OpenMetadata adapters and browse catalog snapshots. Metadata delivery is separate from successful data publication and can be retried.
 
 This is an independently installable DataRaft component. The `dataraft`

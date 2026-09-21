@@ -13,7 +13,14 @@
 #' @param endpoint Full HTTP(S) OpenLineage ingestion URL, for example
 #'   `https://lineage.example/api/v1/lineage`. Supply authentication through
 #'   `request`, never embedded credentials or URL query parameters.
-#' @param namespace Job and dataset namespace.
+#' @param namespace Job namespace. Dataset namespaces identify physical sources.
+#' @param datasets Named list keyed by logical asset or source ID. Each value
+#'   contains `namespace` and `name` following OpenLineage naming conventions,
+#'   for example `list(namespace = "postgres://warehouse:5432",
+#'   name = "insurance.public.contracts")`. Descriptor `dataset` identities
+#'   take precedence. Unknown locations use an explicitly logical DataRaft
+#'   namespace and cannot merge with physical datasets from other tools.
+#'   Supply only public identifiers without credentials or signed URLs.
 #' @param request Optional httr2 request or function accepting a request and
 #'   returning a configured request. A zero-argument request factory is also
 #'   accepted. Factories can obtain fresh credentials at delivery time. The
@@ -27,20 +34,23 @@
 dr_catalog_openlineage <- function(
   endpoint,
   namespace = "dataraft",
-  request = NULL
+  request = NULL,
+  datasets = list()
 ) {
   catalog_endpoint(endpoint)
   dataraft.core::dr_internal_scalar(namespace, "namespace")
   check_catalog_request(request)
+  openlineage_check_datasets(datasets)
   structure(
     list(
       id = paste0(
         "openlineage-",
-        substr(fingerprint(list(endpoint, namespace)), 1L, 16L)
+        substr(fingerprint(list(endpoint, namespace, datasets)), 1L, 16L)
       ),
       endpoint = endpoint,
       namespace = namespace,
-      request = request
+      request = request,
+      datasets = datasets
     ),
     class = c("dr_openlineage_catalog", "dr_catalog_adapter")
   )
@@ -54,6 +64,7 @@ dr_check_component.dr_openlineage_catalog <- function(x, ...) {
   catalog_endpoint(x$endpoint)
   dataraft.core::dr_internal_scalar(x$namespace, "namespace")
   check_catalog_request(x$request)
+  openlineage_check_datasets(x$datasets %||% list())
   invisible(x)
 }
 
@@ -66,6 +77,7 @@ dr_inspect.dr_openlineage_catalog <- function(x, ...) {
     id = x$id,
     endpoint = x$endpoint,
     namespace = x$namespace,
+    datasets = x$datasets,
     delivery = "buffered START and terminal event"
   )
 }
@@ -98,21 +110,39 @@ openlineage_events <- function(catalog, metadata) {
   dataraft.core::dr_internal_scalar(metadata$run_id, "metadata$run_id")
   dataraft.core::dr_internal_scalar(metadata$product, "metadata$product")
   producer <- "https://github.com/dataraft-r/dataraft"
-  dataset <- function(name, schema = NULL) {
+  dataset <- function(name, schema = NULL, descriptor = list()) {
     rlang::local_error_call(rlang::caller_env())
-    result <- list(namespace = catalog$namespace, name = name)
+    identity <- descriptor$dataset %||% catalog$datasets[[name]]
+    physical <- !is.null(identity)
+    if (physical) {
+      openlineage_check_identity(identity)
+    }
+    result <- identity %||%
+      list(
+        namespace = paste0("dataraft://", catalog$namespace),
+        name = name
+      )
+    result$facets <- list(
+      dataraft_identity = list(
+        `_producer` = producer,
+        `_schemaURL` = paste0(
+          "https://raw.githubusercontent.com/dataraft-r/dataraft.catalog/",
+          "main/inst/schemas/DataraftIdentityDatasetFacet.json"
+        ),
+        logicalId = name,
+        physicalIdentity = physical
+      )
+    )
     if (length(schema)) {
-      result$facets <- list(
-        schema = list(
-          `_producer` = producer,
-          `_schemaURL` = paste0(
-            "https://openlineage.io/spec/facets/1-1-1/",
-            "SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet"
-          ),
-          fields = unname(lapply(names(schema), function(field) {
-            list(name = field, type = as.character(schema[[field]]))
-          }))
-        )
+      result$facets$schema <- list(
+        `_producer` = producer,
+        `_schemaURL` = paste0(
+          "https://openlineage.io/spec/facets/1-1-1/",
+          "SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet"
+        ),
+        fields = unname(lapply(names(schema), function(field) {
+          list(name = field, type = as.character(schema[[field]]))
+        }))
       )
     }
     result
@@ -130,7 +160,7 @@ openlineage_events <- function(catalog, metadata) {
       source$path %||%
       input$name %||%
       paste0(metadata$product, "/input-", i)
-    dataset(paste(as.character(name), collapse = "."))
+    dataset(paste(as.character(name), collapse = "."), descriptor = source)
   }))
   successful <- metadata$status %in% c("completed", "published", "cached")
   event <- list(
@@ -147,7 +177,11 @@ openlineage_events <- function(catalog, metadata) {
   end$eventTime <- event_time(metadata$finished_at)
   end$eventType <- if (successful) "COMPLETE" else "FAIL"
   if (successful) {
-    output <- dataset(metadata$product, metadata$schema)
+    output <- dataset(
+      metadata$product,
+      metadata$schema,
+      metadata$outputs %||% list()
+    )
     lineage <- metadata$column_lineage
     if (
       isTRUE(lineage$complete) && length(inputs) == 1L && length(lineage$fields)
@@ -288,4 +322,44 @@ catalog_capabilities <- function(backend, all_statuses = FALSE) {
       c("completed", "published", "cached")
     }
   )
+}
+
+
+openlineage_check_identity <- function(identity) {
+  if (
+    !is.list(identity) || !setequal(names(identity), c("namespace", "name"))
+  ) {
+    dataraft.core::dr_internal_abort(
+      "Dataset identity needs namespace and name.",
+      subclass = "dataraft_error_catalog"
+    )
+  }
+  for (field in c("namespace", "name")) {
+    value <- identity[[field]]
+    dataraft.core::dr_internal_scalar(value, paste("Dataset", field))
+    if (grepl("[?#]", value) || grepl("://[^/]*@", value)) {
+      dataraft.core::dr_internal_abort(
+        "Dataset identities must not contain credentials, queries or fragments.",
+        subclass = "dataraft_error_catalog"
+      )
+    }
+  }
+  invisible(identity)
+}
+
+openlineage_check_datasets <- function(datasets) {
+  if (
+    !is.list(datasets) ||
+      (length(datasets) &&
+        (is.null(names(datasets)) ||
+          anyNA(names(datasets)) ||
+          any(!nzchar(names(datasets))) ||
+          anyDuplicated(names(datasets))))
+  ) {
+    dataraft.core::dr_internal_abort(
+      "datasets must be a list uniquely named by logical asset or source ID.",
+      subclass = "dataraft_error_catalog"
+    )
+  }
+  invisible(lapply(datasets, openlineage_check_identity))
 }
