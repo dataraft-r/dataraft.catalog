@@ -53,7 +53,7 @@ catalog_summary <- function(snapshot, at = Sys.time()) {
       created_at = character()
     )
   }
-  ids <- union(union(releases$asset, runs$asset), deliveries$asset)
+  ids <- union(union(releases[["asset"]], runs[["asset"]]), deliveries$asset)
   if (!length(ids)) {
     return(tibble::tibble(
       asset = character(),
@@ -270,56 +270,91 @@ dr_catalog_app <- function(
       )
     }
   }
+  # Recent bslib versions add a draggable separator without complete ARIA
+  # values. The catalog uses a fixed sidebar on both old and new versions.
+  catalog_sidebar <- function(...) {
+    args <- list(...)
+    if ("resizable" %in% names(formals(bslib::sidebar))) {
+      args$resizable <- FALSE
+    }
+    do.call(bslib::sidebar, args)
+  }
   ui <- bslib::page_sidebar(
     title = "dataraft | Data Catalog",
+    lang = "en",
+    shiny::tags$head(shiny::tags$style(shiny::HTML(
+      "#catalog-content .NA { color: #4a4a4a !important; opacity: 1; } #catalog-content .nav-tabs .nav-link { color: #13665f !important; } .bslib-page-title { color: #ffffff; background-color: #354f5c; } :focus-visible { outline: 3px solid #173247; outline-offset: 3px; } .dataraft-skip { position:absolute; left:-10000px; } .dataraft-skip:focus { position:static; }"
+    ))),
+    shiny::tags$a(
+      "Skip to catalog",
+      href = "#catalog-content",
+      class = "dataraft-skip"
+    ),
+    shiny::includeScript(system.file(
+      "www",
+      "catalog-accessibility.js",
+      package = "dataraft.catalog"
+    )),
     theme = bslib::bs_theme(
       version = 5,
-      bootswatch = "flatly",
-      primary = "#147d74"
+      primary = "#13665f",
+      secondary = "#354f5c"
     ),
-    sidebar = bslib::sidebar(
+    sidebar = catalog_sidebar(
       shiny::p("Find trusted datasets, contracts and metrics."),
       shiny::textInput(
         "search",
         "Search",
         placeholder = "Asset, owner, metric..."
       ),
-      shiny::selectInput("asset", "Dataset / product", choices = character()),
+      shiny::selectInput(
+        "asset",
+        "Dataset / product",
+        choices = character(),
+        selectize = FALSE
+      ),
       shiny::selectInput(
         "definition_id",
         "Contract / product / metric",
-        choices = character()
+        choices = character(),
+        selectize = FALSE
       ),
       shiny::tags$small(
         "Dataset and run lineage. Custom R internals are not inferred."
       ),
       shiny::textOutput("snapshot_time")
     ),
-    bslib::navset_card_tab(
-      bslib::nav_panel("Overview", shiny::tableOutput("overview")),
-      bslib::nav_panel(
-        "Definitions",
-        shiny::tableOutput("definitions"),
-        shiny::verbatimTextOutput("definition")
-      ),
-      bslib::nav_panel(
-        "Quality",
-        shiny::p("Latest attempt and published release are shown separately."),
-        shiny::tableOutput("quality")
-      ),
-      bslib::nav_panel(
-        "Releases",
-        shiny::tableOutput("releases"),
-        shiny::h5("Use this product in R"),
-        shiny::verbatimTextOutput("usage")
-      ),
-      bslib::nav_panel(
-        "Lineage",
-        shiny::uiOutput("lineage_graph"),
-        shiny::tableOutput("lineage")
-      ),
-      bslib::nav_panel("Runs", shiny::tableOutput("runs")),
-      bslib::nav_panel("Notifications", shiny::tableOutput("events"))
+    shiny::tags$div(
+      id = "catalog-content",
+      tabindex = "-1",
+      bslib::navset_card_tab(
+        bslib::nav_panel("Overview", shiny::tableOutput("overview")),
+        bslib::nav_panel(
+          "Definitions",
+          shiny::tableOutput("definitions"),
+          shiny::verbatimTextOutput("definition")
+        ),
+        bslib::nav_panel(
+          "Quality",
+          shiny::p(
+            "Latest attempt and published release are shown separately."
+          ),
+          shiny::tableOutput("quality")
+        ),
+        bslib::nav_panel(
+          "Releases",
+          shiny::tableOutput("releases"),
+          shiny::h2("Use this product in R"),
+          shiny::verbatimTextOutput("usage")
+        ),
+        bslib::nav_panel(
+          "Lineage",
+          shiny::uiOutput("lineage_graph"),
+          shiny::tableOutput("lineage")
+        ),
+        bslib::nav_panel("Runs", shiny::tableOutput("runs")),
+        bslib::nav_panel("Notifications", shiny::tableOutput("events"))
+      )
     )
   )
   server <- function(input, output, session) {
