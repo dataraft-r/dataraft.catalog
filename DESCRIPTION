@@ -2,19 +2,17 @@ Package: dataraft.catalog
 Title: Catalog Components for DataRaft
 Version: 0.1.0.9000
 Authors@R: person("Jan-Hendrik", "Weinert", role = c("aut", "cre"), email = "65009403+JanWein@users.noreply.github.com")
-Description: Independently installable catalog components for modular checked data
-    products. Part of DataRaft, with explicit source, transformation, quality,
-    target and metadata interfaces.
+Description: Publish product metadata to OpenLineage and OpenMetadata.
+    Builds on dataraft.core, with optional dataraft.dbt integration for dbt
+    artifacts and dataraft.lake integration for lake catalogs.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.2.0)
-Imports: dataraft.core, dataraft.dbt, dataraft.lake, digest, dplyr (>= 1.1.0), jsonlite, rlang, tibble
-Suggests: bslib, duckdb (>= 1.5.5), httr2, processx, shiny, testthat (>= 3.2.0)
+Imports: dataraft.core, digest, dplyr (>= 1.1.0), jsonlite, rlang, tibble
+Suggests: bit64, bslib, dataraft.dbt, dataraft.lake, duckdb (>= 1.5.5), httr2, processx, shiny, testthat (>= 3.2.0), webfakes, withr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Remotes: dataraft-r/dataraft.core,
-    dataraft-r/dataraft.lake,
-    dataraft-r/dataraft.dbt
+Remotes: dataraft-r/dataraft.core, dataraft-r/dataraft.dbt, dataraft-r/dataraft.lake
 URL: https://github.com/dataraft-r/dataraft.catalog
 BugReports: https://github.com/dataraft-r/dataraft.catalog/issues

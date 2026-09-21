@@ -75,27 +75,27 @@ dr_catalog_openmetadata_dbt <- function(
   catalog_endpoint(endpoint)
   endpoint <- sub("/+$", "", endpoint)
   if (grepl("/api(/v1)?$", endpoint)) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Use the OpenMetadata server base URL without /api or /api/v1."
     )
   }
-  dataraft.core::scalar(service, "service")
-  dataraft.core::scalar(token_env, "token_env")
+  dataraft.core::dr_internal_scalar(service, "service")
+  dataraft.core::dr_internal_scalar(token_env, "token_env")
   if (!grepl("^[A-Za-z_][A-Za-z0-9_]*$", token_env)) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "token_env must be an environment variable name, not a token."
     )
   }
-  dataraft.core::scalar(executable, "executable")
+  dataraft.core::dr_internal_scalar(executable, "executable")
   if (
     !is.numeric(timeout) ||
       length(timeout) != 1L ||
       is.na(timeout) ||
       timeout <= 0
   ) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "timeout must be positive seconds or Inf."
     )
@@ -106,7 +106,7 @@ dr_catalog_openmetadata_dbt <- function(
       id = paste0(
         "openmetadata-dbt-",
         substr(
-          dataraft.core::fingerprint(list(endpoint, service, options)),
+          fingerprint(list(endpoint, service, options)),
           1L,
           16L
         )
@@ -141,16 +141,16 @@ dbt_catalog_options <- function(options) {
           anyDuplicated(names(options)) ||
           any(!names(options) %in% allowed)))
   ) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "options must be a uniquely named list of documented OpenMetadata dbt settings."
     )
   }
   for (name in intersect(names(options), flags)) {
-    dataraft.core::flag(options[[name]], name)
+    dataraft.core::dr_internal_flag(options[[name]], name)
   }
   if ("dbtClassificationName" %in% names(options)) {
-    dataraft.core::scalar(
+    dataraft.core::dr_internal_scalar(
       options$dbtClassificationName,
       "dbtClassificationName"
     )
@@ -165,7 +165,7 @@ dbt_catalog_options <- function(options) {
         value < 1 ||
         value != floor(value)
     ) {
-      dataraft.core::abort(
+      dataraft.core::dr_internal_abort(
         subclass = "dataraft_error_catalog",
         "parsingTimeoutLimit must be a positive integer."
       )
@@ -203,16 +203,16 @@ dr_capabilities.dr_openmetadata_dbt_catalog <- function(x, ...) {
 #' @export
 #' @importFrom dataraft.core dr_check_component
 dr_check_component.dr_openmetadata_dbt_catalog <- function(x, ...) {
-  dataraft.core::need("processx")
+  dataraft.core::dr_internal_need("processx")
   if (!nzchar(Sys.which(x$executable)) && !file.exists(x$executable)) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "OpenMetadata CLI not found. Install openmetadata-ingestion[dbt] >= 2.0.0.0 in a separate Python environment and set executable to its metadata command; match the server version.",
       "dr_dbt_catalog_unavailable"
     )
   }
   if (!nzchar(Sys.getenv(x$token_env, unset = ""))) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Set the environment variable named by token_env before delivering metadata.",
       "dr_dbt_catalog_credentials"
@@ -230,9 +230,9 @@ dr_publish_metadata.dr_openmetadata_dbt_catalog <- function(
   ...,
   force = FALSE
 ) {
-  dataraft.core::flag(force, "force")
+  dataraft.core::dr_internal_flag(force, "force")
   if (!inherits(metadata, "dr_dbt_result")) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Use this adapter with dr_dbt_build(catalog = ...), dr_dbt_test(catalog = ...), or dr_publish_metadata(adapter, dbt_result).",
       "dr_dbt_catalog_invalid"
@@ -243,7 +243,7 @@ dr_publish_metadata.dr_openmetadata_dbt_catalog <- function(
     destination = catalog$id,
     invocation_id = metadata$invocation_id,
     attempt = 1L,
-    started_at = dataraft.core::now(),
+    started_at = now(),
     finished_at = NULL,
     exit_status = NULL,
     error_class = NULL,
@@ -251,15 +251,15 @@ dr_publish_metadata.dr_openmetadata_dbt_catalog <- function(
     recorded = FALSE
   )
   valid <- tryCatch(
-    dataraft.dbt::dbt_catalog_artifacts(metadata),
+    optional_dbt("dr_internal_dbt_catalog_artifacts")(metadata),
     error = identity
   )
   if (inherits(valid, "error")) {
     delivery$status <- "blocked"
     delivery$error_class <- "dr_dbt_artifact_invalid"
     delivery$message <- "Metadata delivery blocked: dbt artifacts are missing, malformed or changed. Use the original unchanged artifacts from this invocation."
-    delivery$finished_at <- dataraft.core::now()
-    dataraft.dbt::dbt_catalog_warning(delivery)
+    delivery$finished_at <- now()
+    optional_dbt("dr_internal_dbt_catalog_warning")(delivery)
     return(delivery)
   }
   receipt <- file.path(metadata$artifacts_dir, paste0(catalog$id, ".json"))
@@ -300,7 +300,7 @@ dr_publish_metadata.dr_openmetadata_dbt_catalog <- function(
       delivery$message <- "OpenMetadata ingestion returned a nonzero exit status. Check engine/server versions, authentication and the existing database service, then retry dr_publish_metadata(adapter, result)."
     }
   }
-  delivery$finished_at <- dataraft.core::now()
+  delivery$finished_at <- now()
   delivery$recorded <- TRUE
   saved <- tryCatch(
     dbt_catalog_write_receipt(receipt, delivery),
@@ -314,7 +314,7 @@ dr_publish_metadata.dr_openmetadata_dbt_catalog <- function(
     )
   }
   if (delivery$status != "delivered") {
-    dataraft.dbt::dbt_catalog_warning(delivery)
+    optional_dbt("dr_internal_dbt_catalog_warning")(delivery)
   }
   delivery
 }
@@ -366,7 +366,7 @@ dbt_catalog_ingest <- function(catalog, result) {
   dataraft.core::dr_check_component(catalog)
   temporary <- tempfile("dataraft-dbt-metadata-")
   if (!dir.create(temporary, mode = "0700")) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Could not create the ingestion directory."
     )
@@ -374,13 +374,13 @@ dbt_catalog_ingest <- function(catalog, result) {
   on.exit(unlink(temporary, recursive = TRUE), add = TRUE)
   files <- names(result$artifact_hashes)
   if (!all(file.copy(file.path(result$artifacts_dir, files), temporary))) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Could not prepare the dbt artifacts.",
       "dr_dbt_artifact_invalid"
     )
   }
-  dataraft.dbt::dbt_catalog_artifacts(result, temporary)
+  optional_dbt("dr_internal_dbt_catalog_artifacts")(result, temporary)
   config <- dbt_catalog_config(catalog, temporary, files)
   encoded <- as.character(jsonlite::toJSON(
     config,
@@ -406,7 +406,7 @@ dbt_catalog_ingest <- function(catalog, result) {
   token <- substr(token, 2L, nchar(token) - 1L)
   executable <- unname(Sys.which(catalog$executable))
   if (!nzchar(executable)) {
-    executable <- dataraft.core::absolute_path(catalog$executable)
+    executable <- dataraft.core::dr_internal_absolute_path(catalog$executable)
   }
   dbt_catalog_process(
     executable,

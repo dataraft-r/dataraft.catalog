@@ -30,13 +30,13 @@ dr_catalog_openlineage <- function(
   request = NULL
 ) {
   catalog_endpoint(endpoint)
-  dataraft.core::scalar(namespace, "namespace")
+  dataraft.core::dr_internal_scalar(namespace, "namespace")
   check_catalog_request(request)
   structure(
     list(
       id = paste0(
         "openlineage-",
-        substr(dataraft.core::fingerprint(list(endpoint, namespace)), 1L, 16L)
+        substr(fingerprint(list(endpoint, namespace)), 1L, 16L)
       ),
       endpoint = endpoint,
       namespace = namespace,
@@ -50,9 +50,9 @@ dr_catalog_openlineage <- function(
 #' @export
 #' @importFrom dataraft.core dr_check_component
 dr_check_component.dr_openlineage_catalog <- function(x, ...) {
-  dataraft.core::need("httr2")
+  dataraft.core::dr_internal_need("httr2")
   catalog_endpoint(x$endpoint)
-  dataraft.core::scalar(x$namespace, "namespace")
+  dataraft.core::dr_internal_scalar(x$namespace, "namespace")
   check_catalog_request(x$request)
   invisible(x)
 }
@@ -95,8 +95,8 @@ dr_publish_metadata.dr_openlineage_catalog <- function(catalog, metadata, ...) {
 
 openlineage_events <- function(catalog, metadata) {
   rlang::local_error_call(rlang::caller_env())
-  dataraft.core::scalar(metadata$run_id, "metadata$run_id")
-  dataraft.core::scalar(metadata$product, "metadata$product")
+  dataraft.core::dr_internal_scalar(metadata$run_id, "metadata$run_id")
+  dataraft.core::dr_internal_scalar(metadata$product, "metadata$product")
   producer <- "https://github.com/JanWein/dataraft"
   dataset <- function(name, schema = NULL) {
     rlang::local_error_call(rlang::caller_env())
@@ -119,7 +119,7 @@ openlineage_events <- function(catalog, metadata) {
   }
   inputs <- metadata$inputs %||% list()
   if (is.data.frame(inputs)) {
-    inputs <- dataraft.core::safe_descriptors(inputs)
+    inputs <- dataraft.core::dr_internal_safe_descriptors(inputs)
   }
   inputs <- unname(lapply(seq_along(inputs), function(i) {
     input <- inputs[[i]]
@@ -181,9 +181,9 @@ lineage_uuid <- function(run_id) {
 
 event_time <- function(value) {
   rlang::local_error_call(rlang::caller_env())
-  dataraft.core::scalar(value, "Event timestamp")
+  dataraft.core::dr_internal_scalar(value, "Event timestamp")
   if (!grepl("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$", value)) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Event timestamps must be ISO 8601 UTC strings ending in Z."
     )
@@ -194,13 +194,13 @@ event_time <- function(value) {
 
 catalog_endpoint <- function(endpoint) {
   rlang::local_error_call(rlang::caller_env())
-  dataraft.core::scalar(endpoint, "endpoint")
+  dataraft.core::dr_internal_scalar(endpoint, "endpoint")
   if (
     !grepl("^https?://[^/]+", endpoint) ||
       grepl("[?#]", endpoint) ||
       grepl("^https?://[^/]*@", endpoint)
   ) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Use an HTTP(S) endpoint without credentials, query or fragment; configure authentication with request."
     )
@@ -216,7 +216,7 @@ check_catalog_request <- function(request) {
       !is.function(request) &&
       !inherits(request, "httr2_request")
   ) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "request must be NULL, an httr2 request or a request factory."
     )
@@ -227,7 +227,7 @@ check_catalog_request <- function(request) {
 
 catalog_request <- function(endpoint, configure) {
   rlang::local_error_call(rlang::caller_env())
-  dataraft.core::need("httr2")
+  dataraft.core::dr_internal_need("httr2")
   request <- httr2::request(endpoint)
   if (inherits(configure, "httr2_request")) {
     request <- configure
@@ -240,7 +240,7 @@ catalog_request <- function(endpoint, configure) {
     }
   }
   if (!inherits(request, "httr2_request")) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "The catalog request factory must return an httr2 request."
     )

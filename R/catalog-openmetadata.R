@@ -33,7 +33,7 @@ dr_catalog_openmetadata <- function(
   source_tables = NULL
 ) {
   catalog_endpoint(endpoint)
-  dataraft.core::scalar(database_schema, "database_schema")
+  dataraft.core::dr_internal_scalar(database_schema, "database_schema")
   check_catalog_request(request)
   if (
     !is.null(source_tables) &&
@@ -45,7 +45,7 @@ dr_catalog_openmetadata <- function(
         any(!nzchar(names(source_tables))) ||
         anyDuplicated(names(source_tables)))
   ) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "source_tables must be a named character vector of source names and table fully qualified names."
     )
@@ -56,7 +56,7 @@ dr_catalog_openmetadata <- function(
       id = paste0(
         "openmetadata-",
         substr(
-          dataraft.core::fingerprint(list(endpoint, database_schema)),
+          fingerprint(list(endpoint, database_schema)),
           1L,
           16L
         )
@@ -74,9 +74,9 @@ dr_catalog_openmetadata <- function(
 #' @export
 #' @importFrom dataraft.core dr_check_component
 dr_check_component.dr_openmetadata_catalog <- function(x, ...) {
-  dataraft.core::need("httr2")
+  dataraft.core::dr_internal_need("httr2")
   catalog_endpoint(x$endpoint)
-  dataraft.core::scalar(x$database_schema, "database_schema")
+  dataraft.core::dr_internal_scalar(x$database_schema, "database_schema")
   check_catalog_request(x$request)
   invisible(x)
 }
@@ -118,14 +118,14 @@ dr_publish_metadata.dr_openmetadata_catalog <- function(
   if (length(catalog$source_tables)) {
     output <- httr2::resp_body_json(response, simplifyVector = FALSE)
     if (is.null(output$id)) {
-      dataraft.core::abort(
+      dataraft.core::dr_internal_abort(
         subclass = "dataraft_error_catalog",
         "OpenMetadata did not return the table ID needed for lineage."
       )
     }
     inputs <- metadata$inputs
     if (is.data.frame(inputs)) {
-      inputs <- dataraft.core::safe_descriptors(inputs)
+      inputs <- dataraft.core::dr_internal_safe_descriptors(inputs)
     }
     input_names <- vapply(
       inputs,
@@ -143,7 +143,7 @@ dr_publish_metadata.dr_openmetadata_catalog <- function(
       )
       source <- httr2::resp_body_json(resolved, simplifyVector = FALSE)
       if (is.null(source$id)) {
-        dataraft.core::abort(
+        dataraft.core::dr_internal_abort(
           subclass = "dataraft_error_catalog",
           "OpenMetadata did not return the source table ID."
         )
@@ -181,7 +181,7 @@ openmetadata_table <- function(catalog, metadata) {
   if (
     !length(schema) || is.null(names(schema)) || anyDuplicated(names(schema))
   ) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "OpenMetadata publication needs a non-empty named output schema."
     )
@@ -204,7 +204,7 @@ openmetadata_table <- function(catalog, metadata) {
     if (
       !is.character(type) || length(type) != 1L || !type %in% names(mapping)
     ) {
-      dataraft.core::abort(
+      dataraft.core::dr_internal_abort(
         subclass = "dataraft_error_catalog",
         paste0(
           "OpenMetadata cannot represent column `",
