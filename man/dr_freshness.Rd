@@ -2,10 +2,7 @@
 % Please edit documentation in R/catalog.R
 \name{dr_freshness}
 \alias{dr_freshness}
-\title{Assess delivery freshness independently of the last processing attempt
-Release identity follows catalog publication order, independently of writer
-clocks. Publication timestamps still determine displayed age. Historical
-exported snapshots without a publication sequence use their legacy timestamps.}
+\title{Assess delivery freshness independently of the last processing attempt}
 \usage{
 dr_freshness(lake, at = Sys.time())
 }
@@ -18,7 +15,6 @@ dr_freshness(lake, at = Sys.time())
 Tibble of published assets with latest attempt and freshness.
 }
 \description{
-Assess delivery freshness independently of the last processing attempt
 Release identity follows catalog publication order, independently of writer
 clocks. Publication timestamps still determine displayed age. Historical
 exported snapshots without a publication sequence use their legacy timestamps.

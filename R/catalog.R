@@ -1,4 +1,5 @@
 #' Assess delivery freshness independently of the last processing attempt
+#'
 #' Release identity follows catalog publication order, independently of writer
 #' clocks. Publication timestamps still determine displayed age. Historical
 #' exported snapshots without a publication sequence use their legacy timestamps.
