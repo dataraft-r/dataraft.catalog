@@ -3,7 +3,7 @@
 #' @param at Evaluation time.
 #' @return Tibble of published assets with latest attempt and freshness.
 #' @export
-#' @examplesIf requireNamespace("duckdb", quietly = TRUE)
+#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE)
 #' root <- tempfile("dataraft-example-")
 #' config <- dataraft.lake::dr_lake_config(
 #'   dataraft.lake::dr_registry_duckdb(file.path(root, "lake.db")),
@@ -27,7 +27,7 @@
 dr_freshness <- function(lake, at = Sys.time()) {
   catalog_summary(
     lapply(c("assets", "releases", "runs", "events"), function(n) {
-      dataraft.lake::dr_registry(lake, n)
+      optional_lake("dr_registry")(lake, n)
     }) |>
       stats::setNames(c("assets", "releases", "runs", "events")),
     at
@@ -111,7 +111,7 @@ catalog_summary <- function(snapshot, at = Sys.time()) {
         assets$version == parts[2],
     ]
     max_age <- if (nrow(contract)) {
-      dataraft.core::jdecode(contract$definition[[1]])$max_age_hours %||%
+      jdecode(contract$definition[[1]])$max_age_hours %||%
         NA_real_
     } else {
       NA_real_
@@ -152,7 +152,7 @@ catalog_summary <- function(snapshot, at = Sys.time()) {
 #' @return The normalized path, invisibly. No row data or credentials are
 #'   exported.
 #' @export
-#' @examplesIf requireNamespace("duckdb", quietly = TRUE)
+#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE)
 #' root <- tempfile("dataraft-example-")
 #' config <- dataraft.lake::dr_lake_config(
 #'   dataraft.lake::dr_registry_duckdb(file.path(root, "lake.db")),
@@ -175,10 +175,10 @@ dr_catalog_export <- function(lake, path) {
     "events"
   )
   snapshot <- stats::setNames(
-    lapply(names, function(n) dataraft.lake::dr_registry(lake, n)),
+    lapply(names, function(n) optional_lake("dr_registry")(lake, n)),
     names
   )
-  snapshot$exported_at <- dataraft.core::now()
+  snapshot$exported_at <- now()
   # Canonical definition JSON remains a string; nested scalar types are preserved.
   tmp <- tempfile(".catalog-", tmpdir = dirname(path))
   on.exit(unlink(tmp), add = TRUE)
@@ -192,7 +192,7 @@ dr_catalog_export <- function(lake, path) {
     null = "null"
   )
   if (!file.rename(tmp, path)) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Unable to publish catalog snapshot; previous file retained."
     )
@@ -208,7 +208,7 @@ dr_catalog_export <- function(lake, path) {
 #' @param refresh_seconds Metadata refresh interval.
 #' @return A Shiny app object (when launch = FALSE).
 #' @export
-#' @examplesIf requireNamespace("duckdb", quietly = TRUE)
+#' @examplesIf requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE)
 #' root <- tempfile("dataraft-example-")
 #' config <- dataraft.lake::dr_lake_config(
 #'   dataraft.lake::dr_registry_duckdb(file.path(root, "lake.db")),
@@ -226,10 +226,10 @@ dr_catalog_app <- function(
   launch = interactive(),
   refresh_seconds = 30
 ) {
-  dataraft.core::need("shiny")
-  dataraft.core::need("bslib")
+  dataraft.core::dr_internal_need("shiny")
+  dataraft.core::dr_internal_need("bslib")
   if (is.null(lake) == is.null(snapshot)) {
-    dataraft.core::abort(
+    dataraft.core::dr_internal_abort(
       subclass = "dataraft_error_catalog",
       "Supply exactly one of lake or snapshot."
     )
@@ -265,7 +265,7 @@ dr_catalog_app <- function(
         "events"
       )
       stats::setNames(
-        lapply(names, function(n) dataraft.lake::dr_registry(lake, n)),
+        lapply(names, function(n) optional_lake("dr_registry")(lake, n)),
         names
       )
     }
