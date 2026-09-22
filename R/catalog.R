@@ -1,4 +1,8 @@
 #' Assess delivery freshness independently of the last processing attempt
+#'
+#' Release identity follows catalog publication order, independently of writer
+#' clocks. Publication timestamps still determine displayed age. Historical
+#' exported snapshots without a publication sequence use their legacy timestamps.
 #' @param lake Connected lake.
 #' @param at Evaluation time.
 #' @return Tibble of published assets with latest attempt and freshness.
@@ -86,7 +90,7 @@ catalog_summary <- function(snapshot, at = Sys.time()) {
       "missing"
     }
     rr <- releases[releases$asset == id, ]
-    rr <- rr[order(rr$published_at, decreasing = TRUE), ]
+    rr <- catalog_order_releases(rr, legacy = !is.null(snapshot$exported_at))
     attempts <- runs[runs$asset == id, ]
     attempts <- attempts[order(attempts$started_at, decreasing = TRUE), ]
     latest <- if (nrow(attempts)) attempts$status[[1]] else "not_checked"
@@ -178,6 +182,11 @@ dr_catalog_export <- function(lake, path) {
     lapply(names, function(n) optional_lake("dr_registry")(lake, n)),
     names
   )
+  if ("release_order" %in% names(snapshot$releases)) {
+    snapshot$releases$release_order <- as.character(
+      snapshot$releases$release_order
+    )
+  }
   snapshot$exported_at <- now()
   # Canonical definition JSON remains a string; nested scalar types are preserved.
   tmp <- tempfile(".catalog-", tmpdir = dirname(path))
@@ -237,7 +246,11 @@ dr_catalog_app <- function(
   read_snapshot <- function() {
     rlang::local_error_call(rlang::caller_env())
     if (!is.null(snapshot)) {
-      x <- jsonlite::read_json(snapshot, simplifyVector = TRUE)
+      x <- jsonlite::read_json(
+        snapshot,
+        simplifyVector = TRUE,
+        bigint_as_char = TRUE
+      )
       for (n in c(
         "assets",
         "runs",
@@ -601,7 +614,7 @@ dr_catalog_app <- function(
       if (!nrow(x)) {
         return("No published data.")
       }
-      x <- x[order(x$published_at, decreasing = TRUE), ]
+      x <- catalog_order_releases(x, legacy = !is.null(state()$exported_at))
       paste0(
         'dr_tbl(lake, "',
         x$asset[[1]],
@@ -617,4 +630,34 @@ dr_catalog_app <- function(
   }
   app <- shiny::shinyApp(ui, server)
   if (isTRUE(launch)) shiny::runApp(app) else app
+}
+
+
+catalog_order_releases <- function(releases, legacy = FALSE) {
+  if (!nrow(releases)) {
+    return(releases)
+  }
+  if ("release_order" %in% names(releases)) {
+    sequence <- as.character(releases$release_order)
+    if (
+      anyNA(sequence) ||
+        anyDuplicated(sequence) ||
+        any(!grepl("^[1-9][0-9]*$", sequence))
+    ) {
+      dataraft.core::dr_internal_abort(
+        "Catalog publication sequence is incomplete or duplicated.",
+        subclass = "dataraft_error_catalog"
+      )
+    }
+    return(releases[order(nchar(sequence), sequence, decreasing = TRUE), ])
+  }
+  if (!legacy) {
+    dataraft.core::dr_internal_abort(
+      "Live catalog releases need a publication sequence; migrate the registry.",
+      subclass = "dataraft_error_catalog"
+    )
+  }
+  releases[
+    order(releases$published_at, releases$release_id, decreasing = TRUE),
+  ]
 }

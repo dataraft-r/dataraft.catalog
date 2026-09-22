@@ -4,19 +4,31 @@
 \alias{dr_catalog_openlineage}
 \title{Send execution lineage to an OpenLineage endpoint}
 \usage{
-dr_catalog_openlineage(endpoint, namespace = "dataraft", request = NULL)
+dr_catalog_openlineage(
+  endpoint,
+  namespace = "dataraft",
+  request = NULL,
+  datasets = list()
+)
 }
 \arguments{
 \item{endpoint}{Full HTTP(S) OpenLineage ingestion URL, for example
 \verb{https://lineage.example/api/v1/lineage}. Supply authentication through
 \code{request}, never embedded credentials or URL query parameters.}
 
-\item{namespace}{Job and dataset namespace.}
+\item{namespace}{Job namespace. Dataset namespaces identify physical sources.}
 
 \item{request}{Optional httr2 request or function accepting a request and
 returning a configured request. A zero-argument request factory is also
 accepted. Factories can obtain fresh credentials at delivery time. The
 adapter always restores its configured destination URL.}
+
+\item{datasets}{Named list keyed by logical asset or source ID. Each value
+contains \code{namespace} and \code{name} following OpenLineage naming conventions,
+for example \code{list(namespace = "postgres://warehouse:5432", name = "insurance.public.contracts")}. Descriptor \code{dataset} identities
+take precedence. Unknown locations use an explicitly logical DataRaft
+namespace and cannot merge with physical datasets from other tools.
+Supply only public identifiers without credentials or signed URLs.}
 }
 \value{
 A catalog adapter for \code{\link[dataraft.core:dr_add_catalog]{dataraft.core::dr_add_catalog()}}.
