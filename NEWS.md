@@ -1,5 +1,7 @@
 # dataraft.catalog 0.1.0.9000
 
+* `dr_catalog_pane()` opens the catalog through Shiny's actual URL callback in an IDE viewer, with browser fallback and explicit foreground execution.
+
 * `dr_freshness()` and catalog usage examples select the latest publication by registry sequence, preserving timestamp fallback only for legacy exported snapshots.
 
 * `dr_catalog_openlineage()` separates job and dataset namespaces, accepts physical dataset identity mappings, and retains logical IDs in a custom facet. Unknown physical identities are explicitly marked logical.
