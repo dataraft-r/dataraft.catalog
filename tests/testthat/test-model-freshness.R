@@ -22,7 +22,10 @@ test_that("real model releases do not break table freshness assessments", {
   dataraft.core::dr_publish(
     dataraft.core::dr_product(
       "portfolio",
-      dm::dm(customers = data.frame(id = 1:2))
+      dm::dm(customers = data.frame(id = 1:2)),
+      contracts = list(customers = dataraft.core::dr_contract(
+        "customers.contract", columns = c(id = "integer")
+      ))
     ),
     to = lake
   )

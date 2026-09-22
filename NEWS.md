@@ -1,3 +1,8 @@
+# dataraft.catalog 0.1.0.9001
+
+* Test metadata delivery and model freshness with explicit contracts against the
+  core extension protocol and lake integrity compatibility set.
+
 # dataraft.catalog 0.1.0.9000
 
 * `dr_freshness()` reports unknown freshness for model releases without a versioned freshness contract, while preserving freshness checks for other assets in the same catalog.

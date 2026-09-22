@@ -1,6 +1,6 @@
 Package: dataraft.catalog
 Title: Catalog Components for DataRaft
-Version: 0.1.0.9000
+Version: 0.1.0.9001
 Authors@R: person("Jan-Hendrik", "Weinert", role = c("aut", "cre"), email = "65009403+JanWein@users.noreply.github.com")
 Description: Publish product metadata to OpenLineage and OpenMetadata.
     Builds on dataraft.core, with optional dataraft.dbt integration for dbt
@@ -8,11 +8,11 @@ Description: Publish product metadata to OpenLineage and OpenMetadata.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.2.0)
-Imports: codetools, dataraft.core (>= 0.1.0.9000), digest, dplyr (>= 1.1.0), jsonlite, rlang, tibble
-Suggests: bit64, dm, bslib, dataraft.dbt (>= 0.1.0.9000), dataraft.lake (>= 0.1.0.9000), duckdb (>= 1.5.5), httr2, processx, shiny, testthat (>= 3.2.0), webfakes, withr
+Imports: codetools, dataraft.core (>= 0.1.0.9002), digest, dplyr (>= 1.1.0), jsonlite, rlang, tibble
+Suggests: bit64, dm, bslib, dataraft.dbt (>= 0.1.0.9001), dataraft.lake (>= 0.1.0.9001), duckdb (>= 1.5.5), httr2, processx, shiny, testthat (>= 3.2.0), webfakes, withr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Remotes: dataraft-r/dataraft.core@5a7bb6953ef7d79217c43facd399087b97f3c755, dataraft-r/dataraft.dbt@558ff796f017bbbfe3ece3f74ab808c01a9b2edc, dataraft-r/dataraft.lake@6759c2cb16592a344683c07c6ca2830c80dd79e8
+Remotes: dataraft-r/dataraft.core@2e180c0cebd61ff2a94ca5144d3b94fa58c5fbe4, dataraft-r/dataraft.dbt@1d025f082241d8a55eb45f5638072611d5e61787, dataraft-r/dataraft.lake@9f7ff3e6bad7eea061613b737fd673512de1128a
 URL: https://github.com/dataraft-r/dataraft.catalog
 BugReports: https://github.com/dataraft-r/dataraft.catalog/issues

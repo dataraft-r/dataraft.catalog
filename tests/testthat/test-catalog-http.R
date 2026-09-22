@@ -61,7 +61,9 @@ test_that("OpenLineage sends authenticated START and COMPLETE with stable identi
       httr2::req_auth_bearer_token(request, "test-token")
     }
   )
-  result <- dr_product("orders") |>
+  result <- dr_product("orders", contract = dataraft.core::dr_contract(
+    "orders.contract", columns = c(id = "integer")
+  )) |>
     dr_add_source(data.frame(id = 1:2)) |>
     dr_add_catalog(adapter) |>
     dr_run()
@@ -92,7 +94,9 @@ test_that("catalog outages preserve data and retry the same lineage identity", {
   writeLines("fail", file.path(server$path, "fail"))
   adapter <- dr_catalog_openlineage(paste0(server$url, "/api/v1/lineage"))
   expect_warning(
-    result <- dr_product("orders") |>
+    result <- dr_product("orders", contract = dataraft.core::dr_contract(
+      "orders.contract", columns = c(id = "integer")
+    )) |>
       dr_add_source(data.frame(id = 1L)) |>
       dr_add_catalog(adapter) |>
       dr_run(evidence = evidence),
@@ -138,7 +142,9 @@ test_that("a committed output stays published when metadata delivery fails", {
   ))
   target <- structure(list(path = output), class = "catalog_fixture_target")
   expect_warning(
-    result <- dr_product("orders") |>
+    result <- dr_product("orders", contract = dataraft.core::dr_contract(
+      "orders.contract", columns = c(id = "integer")
+    )) |>
       dr_add_source(data.frame(id = 1L)) |>
       dr_set_target(target) |>
       dr_add_catalog(dr_catalog_openlineage(paste0(
@@ -176,7 +182,10 @@ test_that("OpenMetadata upserts typed schemas and resolves optional lineage", {
     "warehouse.analytics.public",
     source_tables = c(raw = "warehouse.raw.orders")
   )
-  result <- dr_product("orders") |>
+  result <- dr_product("orders", contract = dataraft.core::dr_contract(
+    "orders.contract", columns = c(id = "integer", amount = "numeric",
+      valid = "logical", day = "Date", label = "character")
+  )) |>
     dr_add_source(
       data.frame(
         id = 1L,
