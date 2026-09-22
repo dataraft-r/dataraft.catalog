@@ -1,5 +1,7 @@
 # dataraft.catalog 0.1.0.9000
 
+* `dr_freshness()` reports unknown freshness for model releases without a versioned freshness contract, while preserving freshness checks for other assets in the same catalog.
+
 * `dr_catalog_pane()` opens the catalog through Shiny's actual URL callback in an IDE viewer, with browser fallback and explicit foreground execution.
 
 * `dr_freshness()` and catalog usage examples select the latest publication by registry sequence, preserving timestamp fallback only for legacy exported snapshots.

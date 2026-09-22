@@ -3,6 +3,8 @@
 #' Release identity follows catalog publication order, independently of writer
 #' clocks. Publication timestamps still determine displayed age. Historical
 #' exported snapshots without a publication sequence use their legacy timestamps.
+#' Freshness is `unknown` when the release has no matching versioned contract
+#' with a declared `max_age_hours`, including model releases without that SLA.
 #' @param lake Connected lake.
 #' @param at Evaluation time.
 #' @return Tibble of published assets with latest attempt and freshness.
@@ -108,11 +110,18 @@ catalog_summary <- function(snapshot, at = Sys.time()) {
       ))
     }
     r <- rr[1, ]
-    parts <- strsplit(r$contract[[1]], "@", fixed = TRUE)[[1]]
+    # Model releases carry a model signature rather than a versioned contract.
+    # Match only complete registered contract identities; which() excludes
+    # missing metadata instead of generating an NA row for JSON decoding.
+    reference <- r$contract[[1]]
     contract <- assets[
-      assets$kind == "contract" &
-        assets$id == parts[1] &
-        assets$version == parts[2],
+      which(
+        assets$kind == "contract" &
+          !is.na(assets$id) &
+          !is.na(assets$version) &
+          !is.na(reference) &
+          paste(assets$id, assets$version, sep = "@") == reference
+      ),
     ]
     max_age <- if (nrow(contract)) {
       jdecode(contract$definition[[1]])$max_age_hours %||%

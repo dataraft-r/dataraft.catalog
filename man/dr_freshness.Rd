@@ -18,6 +18,8 @@ Tibble of published assets with latest attempt and freshness.
 Release identity follows catalog publication order, independently of writer
 clocks. Publication timestamps still determine displayed age. Historical
 exported snapshots without a publication sequence use their legacy timestamps.
+Freshness is \code{unknown} when the release has no matching versioned contract
+with a declared \code{max_age_hours}, including model releases without that SLA.
 }
 \examples{
 \dontshow{if (requireNamespace("dataraft.lake", quietly = TRUE) && requireNamespace("duckdb", quietly = TRUE) && requireNamespace("bit64", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
