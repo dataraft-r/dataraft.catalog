@@ -9,7 +9,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.2.0)
 Imports: codetools, dataraft.core (>= 0.1.0.9000), digest, dplyr (>= 1.1.0), jsonlite, rlang, tibble
-Suggests: bit64, bslib, dataraft.dbt (>= 0.1.0.9000), dataraft.lake (>= 0.1.0.9000), duckdb (>= 1.5.5), httr2, processx, shiny, testthat (>= 3.2.0), webfakes, withr
+Suggests: bit64, dm, bslib, dataraft.dbt (>= 0.1.0.9000), dataraft.lake (>= 0.1.0.9000), duckdb (>= 1.5.5), httr2, processx, shiny, testthat (>= 3.2.0), webfakes, withr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

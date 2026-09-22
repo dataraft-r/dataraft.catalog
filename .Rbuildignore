@@ -10,3 +10,5 @@
 ^SECURITY\.md$
 
 ^family-lock\.json$
+
+^_pkgdown\.yml$
