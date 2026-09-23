@@ -16,3 +16,12 @@ pak::pak("dataraft-r/dataraft.catalog")
 ```
 
 [Get started with DataRaft](https://github.com/dataraft-r/dataraft).
+
+## Retirement notice
+
+![Deprecated](man/figures/lifecycle-deprecated.svg)
+
+This compatibility package is deprecated as of 2026-09-23 and will be removed
+from the supported family on **2027-01-01**. Use `dataraft.adapters::dr_catalog_*()`
+and `dataraft.adapters::dr_freshness()` directly. The forwarding functions have
+identical behavior; new applications should not depend on dataraft.catalog.
