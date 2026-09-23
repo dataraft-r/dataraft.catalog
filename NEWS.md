@@ -1,3 +1,9 @@
+# dataraft.catalog 0.1.0.9004
+
+* Become a compatibility facade re-exporting catalog functions from dataraft.adapters. New projects should use dataraft.adapters.
+
+* Use the umbrella CI manifest as the single immutable family dependency lock.
+
 # dataraft.catalog 0.1.0.9000
 
 * `dr_freshness()` reports unknown freshness for model releases without a versioned freshness contract, while preserving freshness checks for other assets in the same catalog.
