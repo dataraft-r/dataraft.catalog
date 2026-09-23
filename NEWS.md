@@ -1,3 +1,7 @@
+# dataraft.catalog 0.1.0.9005
+
+* Deprecated compatibility facade: retirement is scheduled for 2027-01-01. Use dataraft.adapters.
+
 # dataraft.catalog 0.1.0.9004
 
 * Become a compatibility facade re-exporting catalog functions from dataraft.adapters. New projects should use dataraft.adapters.
