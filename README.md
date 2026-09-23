@@ -1,27 +1,11 @@
-# dataraft.catalog
+# Catalog integrations live in dataraft.adapters
 
-This integration is **experimental**. OpenLineage and OpenMetadata evolve independently of DataRaft; pin and validate the versions you deploy. Metadata delivery is at least once and does not make a data write transactional.
+This repository no longer contains an R package. DataRaft is pre-production and
+has no compatibility facade. Use `dataraft.adapters` for catalog applications,
+freshness, OpenLineage and OpenMetadata integrations.
 
-Publish metadata with OpenLineage or OpenMetadata adapters and browse catalog snapshots. Metadata delivery is separate from successful data publication and can be retried.
+- [Current documentation](https://dataraft-r.github.io/dataraft/packages/dataraft.adapters/)
+- [Source package](https://github.com/dataraft-r/dataraft.adapters)
 
-This is an independently installable DataRaft component. The `dataraft`
-metapackage provides the shared introduction and re-exports the family API.
-See `help(package = "dataraft.catalog")` for the component reference.
-
-Install the development version:
-
-```r
-install.packages("pak")
-pak::pak("dataraft-r/dataraft.catalog")
-```
-
-[Get started with DataRaft](https://github.com/dataraft-r/dataraft).
-
-## Retirement notice
-
-![Deprecated](man/figures/lifecycle-deprecated.svg)
-
-This compatibility package is deprecated as of 2026-09-23 and will be removed
-from the supported family on **2027-01-01**. Use `dataraft.adapters::dr_catalog_*()`
-and `dataraft.adapters::dr_freshness()` directly. The forwarding functions have
-identical behavior; new applications should not depend on dataraft.catalog.
+The Git history retains earlier development versions. There are no active
+package builds or releases here.
