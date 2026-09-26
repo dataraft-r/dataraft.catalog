@@ -1,11 +1,5 @@
-# Catalog integrations live in dataraft.adapters
+# dataraft.catalog has moved
 
-This repository no longer contains an R package. DataRaft is pre-production and
-has no compatibility facade. Use `dataraft.adapters` for catalog applications,
-freshness, OpenLineage and OpenMetadata integrations.
+This repository holds the history of an earlier development package. It has no active R package or releases.
 
-- [Current documentation](https://dataraft-r.github.io/dataraft/packages/dataraft.adapters/)
-- [Source package](https://github.com/dataraft-r/dataraft.adapters)
-
-The Git history retains earlier development versions. There are no active
-package builds or releases here.
+For catalog views, freshness checks, OpenLineage and OpenMetadata integration, use [`dataraft.adapters`](https://github.com/dataraft-r/dataraft.adapters). For the complete workflow, [start with DataRaft](https://github.com/dataraft-r/dataraft) or read the [integration guide](https://dataraft-r.github.io/dataraft/articles/integrations.html).
